@@ -66,12 +66,30 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		@Nonnull
 		@Override
 		public Optional<Integer> getDetectiveLocation(Piece.Detective detective) {
+			for (Player temp : detectives) {
+				if ((temp.piece()) == detective) return Optional.of(temp.location());
+			}
 			return Optional.empty();
 		}
 
 		@Nonnull
 		@Override
 		public Optional<TicketBoard> getPlayerTickets(Piece piece) {
+			for (Player temp : detectives) {
+				TicketBoard ticketboard = new TicketBoard() {
+					public int getCount(@Nonnull ScotlandYard.Ticket ticket) {
+						return (temp.tickets()).get(ticket);
+					}}
+					;
+				if((temp.piece()) == piece) return Optional.of(ticketboard);
+				}
+			TicketBoard ticketboard = new TicketBoard() {
+				public int getCount(@Nonnull ScotlandYard.Ticket ticket) {
+					return (MrX.tickets()).get(ticket);
+				}}
+					;
+			if (piece.isMrX()) return Optional.of(ticketboard);
+
 			return Optional.empty();
 		}
 
