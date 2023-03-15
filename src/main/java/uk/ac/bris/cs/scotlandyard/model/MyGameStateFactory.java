@@ -8,8 +8,10 @@ import com.google.common.collect.ImmutableSet;
 import uk.ac.bris.cs.scotlandyard.model.Board.GameState;
 import uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Factory;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.DOUBLE;
 import static uk.ac.bris.cs.scotlandyard.model.ScotlandYard.Ticket.SECRET;
@@ -27,6 +29,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		private Player MrX;
 		private List<Player> detectives;
 		private ImmutableSet<Move> moves;
+
 		private ImmutableSet<Piece> winner;
 
 		private MyGameState(
@@ -34,8 +37,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				final ImmutableSet<Piece> remaining,
 				final ImmutableList<LogEntry> log,
 				final Player mrX,
-				final List<Player> detectives) {
-			this.setup = setup;
+				final List<Player> detectives){
+			this.setup = new GameSetup(setup.graph, setup.moves);
 			this.remaining = remaining;
 			this.log = log;
 			this.MrX = mrX;
@@ -50,13 +53,13 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				if ((detective.tickets()).get(DOUBLE) != 0) throw new IllegalArgumentException("Detective has double ticket");
 			}
 			for (int i = 0; i < detectives.size(); i++) {
-				for (int j = i + 1; j < detectives.size(); j++ ){
-					if (detectives.get(i).piece() == detectives.get(j).piece()) throw new IllegalArgumentException("2 detectives are the same colour");
-					if (detectives.get(i).location() == detectives.get(j).location()) throw new IllegalArgumentException("2 detectives are the same colour");
+				for (int j = i + 1; j < detectives.size(); j++) {
+					if (detectives.get(i).piece() == detectives.get(j).piece())
+						throw new IllegalArgumentException("2 detectives are the same colour");
+					if (detectives.get(i).location() == detectives.get(j).location())
+						throw new IllegalArgumentException("2 detectives are the same colour");
 				}
 			}
-			if (setup.moves != this.setup.moves) throw new IllegalArgumentException("2 detectives are the same colour");
-
 
 
 		}
@@ -90,8 +93,16 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			return null;
 		}
 
-		@Override public GameSetup getSetup() {  return null; }
-		@Override  public ImmutableSet<Piece> getPlayers() { return null; }
+		@Override public GameSetup getSetup() {  return this.setup;}
+
+
+		@Override  public ImmutableSet<Piece> getPlayers() {
+			Set<Piece> temp = new HashSet<>();
+			temp.add(this.MrX.piece());;
+			for(Player detective : this.detectives) {temp.add(detective.piece());}
+			return ImmutableSet.copyOf(temp);
+
+		}
 		@Override public GameState advance(Move move) {  return null;  }
 	}
 
