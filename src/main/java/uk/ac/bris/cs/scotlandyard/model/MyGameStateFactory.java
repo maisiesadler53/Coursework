@@ -133,10 +133,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		@Nonnull
 		@Override
 		public ImmutableSet<Move> getAvailableMoves() {
-			while (this.moves != null) {
-				return this.moves;
-			}
-			return null;
+			return this.moves;
 		}
 
 		@Override
@@ -161,11 +158,12 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		@Nonnull
 		private static Set<Move.SingleMove> makeSingleMoves(GameSetup setup, List<Player> detectives, Player player, int source) {
 			Set<Move.SingleMove> possibleMoves = new HashSet<>();
+			boolean occupied = false;
 			for (int destination : setup.graph.adjacentNodes(source)) {
-				boolean occupied = false;
 				for (Player temp : detectives) {
 					if (temp.location() == destination) occupied = true;
 				}
+
 				if (occupied) continue;
 				for (ScotlandYard.Transport t : setup.graph.edgeValueOrDefault(source, destination, ImmutableSet.of())) {
 					if ((player.tickets().containsValue(t.requiredTicket()))) {
