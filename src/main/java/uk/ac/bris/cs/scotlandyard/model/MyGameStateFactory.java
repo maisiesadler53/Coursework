@@ -81,10 +81,10 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		}
 
 		public ImmutableSet<Move> makeMoves() {
-			Set<Move> tempmoves = new HashSet<>();
-			if (!this.remaining.contains(MRX)) {
+			HashSet<Move> tempmoves = new HashSet<>();
+			if (!this.remaining.contains(MRX) && !this.remaining.isEmpty()) {
 				for (Player temp : this.detectives) {
-					tempmoves.addAll((makeSingleMoves(this.setup, this.detectives, temp, temp.location())));
+					tempmoves.addAll(makeSingleMoves(this.setup, this.detectives, temp, temp.location()));
 				}
 			}
 
@@ -96,6 +96,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			}
 
 			return ImmutableSet.copyOf(tempmoves);
+
 
 		}
 
@@ -123,7 +124,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		@Nonnull
 		@Override
 		public ImmutableList<LogEntry> getMrXTravelLog() {
-			return null;
+			return this.log;
 		}
 
 		@Nonnull
@@ -211,7 +212,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 
 			// mr x's advance method
-			if (move.commencedBy() == MrX.piece()) {
+			if (move.commencedBy() == MrX.piece() && this.remaining.contains(MRX)) {
 				return move.accept(new Move.Visitor<GameState>() {
 					@Override
 					public GameState visit(Move.SingleMove move) {
@@ -245,13 +246,16 @@ public final class MyGameStateFactory implements Factory<GameState> {
 					@Override
 					public GameState visit(Move.DoubleMove move) {
 						// add to logs
-						List<LogEntry> newLog = new ArrayList<>(log);
-						if (setup.moves.contains(true)) {
+						List<LogEntry> newLog = new ArrayList<>();
+						if (setup.moves.get(0) == (true)) {
 							newLog.add(LogEntry.reveal((move.ticket1), move.destination1));
-						} else if (setup.moves.contains(false)) {
+							newLog.add(LogEntry.reveal((move.ticket2), move.destination2));
+						}
+						else if (setup.moves.get(0) == (false)) {
 							newLog.add(LogEntry.hidden(move.ticket1));
 							newLog.add(LogEntry.hidden(move.ticket2));
 						}
+
 
 						// removed tickets
 						MrX.use(move.ticket1);
@@ -262,20 +266,23 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 						Set<Piece> newRemaining = new HashSet<>(remaining);
 						newRemaining.remove(MRX);
-
 						if (newRemaining.isEmpty()) {
 							for (Player detective:detectives) {
 								newRemaining.add(detective.piece()) ;
 							}
 						}
-						GameState gameState = new MyGameState(setup, remaining, ImmutableList.copyOf(newLog), MrX, detectives);
+
+						GameState gameState = new MyGameState(setup, ImmutableSet.copyOf(newRemaining), ImmutableList.copyOf(newLog), MrX, detectives);
 						return gameState;
 					}
 				});
+
 			}
 
-			if (move.commencedBy().isDetective()) {
+			else if (move.commencedBy().isDetective() && !this.remaining.contains(MRX)) {
+
 				return move.accept(new Move.Visitor<GameState>() {
+					Set<Piece> newRemaining = new HashSet<>(remaining);
 					@Override
 					public GameState visit(Move.SingleMove move) {
 						// removed tickets
@@ -286,13 +293,17 @@ public final class MyGameStateFactory implements Factory<GameState> {
 								player.use(move.ticket);
 								MrX.give(move.ticket);
 								player.at(move.destination);
+
 							}
 						}
-						Set<Piece> newRemaining = new HashSet<>(remaining);
-						newRemaining.remove(move.commencedBy());
+						if (newRemaining.isEmpty()) {
+							for (Player detective:detectives) {
+								newRemaining.add(detective.piece()) ;
+							}
+						}
 
 
-						GameState gameState = new MyGameState(setup, remaining, log, MrX, detectives);
+						GameState gameState = new MyGameState(setup, ImmutableSet.copyOf(newRemaining), log, MrX, detectives);
 						return gameState;
 					}
 
@@ -310,7 +321,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 
 	@Nonnull
-	@Override
 	public GameState build(GameSetup setup, Player mrX, ImmutableList<Player> detectives) {
 		return new MyGameState(setup, ImmutableSet.of(mrX.piece()), ImmutableList.of(), mrX, detectives);
 
