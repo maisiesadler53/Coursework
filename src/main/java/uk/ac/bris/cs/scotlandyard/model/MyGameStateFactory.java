@@ -81,16 +81,18 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		}
 
 		public ImmutableSet<Move> makeMoves() {
-			List<Move> tempmoves = new ArrayList<>();
-			if(this.remaining.containsAll(detectives)) {
+			Set<Move> tempmoves = new HashSet<>();
+			if (!this.remaining.contains(MRX)) {
 				for (Player temp : this.detectives) {
 					tempmoves.addAll((makeSingleMoves(this.setup, this.detectives, temp, temp.location())));
 				}
 			}
 
-			else if (this.remaining.contains(MrX) && !this.remaining.containsAll(detectives)){
+			else if (this.remaining.contains(MRX)) {
 				tempmoves.addAll(makeSingleMoves(this.setup, this.detectives, MrX, MrX.location()));
-				tempmoves.addAll(makeDoubleMoves(this.setup, this.detectives, MrX, MrX.location()));
+				if ((makeDoubleMoves(this.setup, this.detectives, MrX, MrX.location())) != null) {
+					tempmoves.addAll(makeDoubleMoves(this.setup, this.detectives, MrX, MrX.location()));
+				}
 			}
 
 			return ImmutableSet.copyOf(tempmoves);
@@ -160,16 +162,17 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			Set<Move.SingleMove> possibleMoves = new HashSet<>();
 			boolean occupied = false;
 			for (int destination : setup.graph.adjacentNodes(source)) {
+				occupied = false;
 				for (Player temp : detectives) {
 					if (temp.location() == destination) occupied = true;
 				}
 
 				if (occupied) continue;
 				for (ScotlandYard.Transport t : setup.graph.edgeValueOrDefault(source, destination, ImmutableSet.of())) {
-					if ((player.tickets().containsValue(t.requiredTicket()))) {
+					if ((player.has(t.requiredTicket()))) {
 						possibleMoves.add(new Move.SingleMove(player.piece(), source, t.requiredTicket(), destination));
 					}
-					else if (player.isMrX() && player.has(SECRET)) {
+					if (player.isMrX() && player.has(SECRET)) {
 						possibleMoves.add(new Move.SingleMove(player.piece(), source, SECRET, destination));
 					}
 				}
@@ -181,7 +184,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 		@Nonnull
 		private Set<Move.DoubleMove> makeDoubleMoves(GameSetup setup, List<Player> detectives, Player player, int source) {
-			if (player.has(DOUBLE) && player.isMrX()) {
+			if (this.MrX.has(DOUBLE) && player.isMrX()) {
 				Set<Move.SingleMove> possibleMoves = makeSingleMoves(setup, detectives, player, source);
 				Set<Move.DoubleMove> possibleDoubleMoves = new HashSet<>();
 				for (Move.SingleMove singleMove : possibleMoves) {
@@ -192,9 +195,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 						}
 					}
 				}
-				for (Move.DoubleMove moves : possibleDoubleMoves) {
-					System.out.println(moves.toString());
-				}
+
 
 				return possibleDoubleMoves;
 			} else return null;
@@ -214,11 +215,12 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				return move.accept(new Move.Visitor<GameState>() {
 					@Override
 					public GameState visit(Move.SingleMove move) {
-						// add to log - hidden and reveals
+						// add to log - hidden and reveals //
+						List<LogEntry> newLog = new ArrayList<>(log);
 						if (setup.moves.contains(true)) {
-							log.add(LogEntry.reveal((move.ticket), move.destination));
+							newLog.add(LogEntry.reveal((move.ticket), move.destination));
 						} else if (setup.moves.contains(false)) {
-							log.add(LogEntry.hidden(move.ticket));
+							newLog.add(LogEntry.hidden(move.ticket));
 						}
 
 						// removed tickets
@@ -226,9 +228,16 @@ public final class MyGameStateFactory implements Factory<GameState> {
 						// moved to new location
 						MrX.at(move.destination);
 
-						remaining.remove(Piece.MrX.MRX);
 
-						GameState gameState = new MyGameState(setup, remaining, log, MrX, detectives);
+						Set<Piece> newRemaining = new HashSet<>(remaining);
+						newRemaining.remove(MRX);
+						if (newRemaining.isEmpty()) {
+							for (Player detective:detectives) {
+								newRemaining.add(detective.piece()) ;
+							}
+						}
+
+						GameState gameState = new MyGameState(setup, ImmutableSet.copyOf(newRemaining), ImmutableList.copyOf(newLog), MrX, detectives);
 						return gameState;
 
 					}
@@ -236,11 +245,12 @@ public final class MyGameStateFactory implements Factory<GameState> {
 					@Override
 					public GameState visit(Move.DoubleMove move) {
 						// add to logs
+						List<LogEntry> newLog = new ArrayList<>(log);
 						if (setup.moves.contains(true)) {
-							log.add(LogEntry.reveal((move.ticket1), move.destination1));
+							newLog.add(LogEntry.reveal((move.ticket1), move.destination1));
 						} else if (setup.moves.contains(false)) {
-							log.add(LogEntry.hidden(move.ticket1));
-							log.add(LogEntry.hidden(move.ticket2));
+							newLog.add(LogEntry.hidden(move.ticket1));
+							newLog.add(LogEntry.hidden(move.ticket2));
 						}
 
 						// removed tickets
@@ -250,9 +260,15 @@ public final class MyGameStateFactory implements Factory<GameState> {
 						MrX.use(move.ticket2);
 						MrX.at(move.destination2);
 
-						remaining.remove(Piece.MrX.MRX);
+						Set<Piece> newRemaining = new HashSet<>(remaining);
+						newRemaining.remove(MRX);
 
-						GameState gameState = new MyGameState(setup, remaining, log, MrX, detectives);
+						if (newRemaining.isEmpty()) {
+							for (Player detective:detectives) {
+								newRemaining.add(detective.piece()) ;
+							}
+						}
+						GameState gameState = new MyGameState(setup, remaining, ImmutableList.copyOf(newLog), MrX, detectives);
 						return gameState;
 					}
 				});
@@ -272,8 +288,9 @@ public final class MyGameStateFactory implements Factory<GameState> {
 								player.at(move.destination);
 							}
 						}
+						Set<Piece> newRemaining = new HashSet<>(remaining);
+						newRemaining.remove(move.commencedBy());
 
-						remaining.remove(move.commencedBy());
 
 						GameState gameState = new MyGameState(setup, remaining, log, MrX, detectives);
 						return gameState;
@@ -295,7 +312,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 	@Nonnull
 	@Override
 	public GameState build(GameSetup setup, Player mrX, ImmutableList<Player> detectives) {
-		return new MyGameState(setup, ImmutableSet.of(Piece.MrX.MRX), ImmutableList.of(), mrX, detectives);
+		return new MyGameState(setup, ImmutableSet.of(mrX.piece()), ImmutableList.of(), mrX, detectives);
 
 
 	}
