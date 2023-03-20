@@ -196,8 +196,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 						}
 					}
 				}
-
-
 				return possibleDoubleMoves;
 			} else return null;
 		}
@@ -210,9 +208,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				throw new IllegalArgumentException("Illegal move: " + move);
 			}
 
-
 			// mr x's advance method
-			if (move.commencedBy() == MrX.piece() && this.remaining.contains(MRX)) {
+			if (move.commencedBy() == MrX.piece()) {
 				return move.accept(new Move.Visitor<GameState>() {
 					@Override
 					public GameState visit(Move.SingleMove move) {
@@ -296,10 +293,12 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 							}
 						}
+						newRemaining.remove(move.commencedBy());
 						if (newRemaining.isEmpty()) {
 							for (Player detective:detectives) {
-								newRemaining.add(detective.piece()) ;
+								newRemaining.add(detective.piece());
 							}
+							newRemaining.add(MRX);
 						}
 
 
