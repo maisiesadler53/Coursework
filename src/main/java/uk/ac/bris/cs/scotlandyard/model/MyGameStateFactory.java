@@ -84,7 +84,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			HashSet<Move> tempmoves = new HashSet<>();
 			if (!this.remaining.contains(MRX) && !this.remaining.isEmpty()) {
 				for (Player temp : this.detectives) {
-					tempmoves.addAll(makeSingleMoves(this.setup, this.detectives, temp, temp.location()));
+					if (remaining.contains(temp.piece())) {
+					tempmoves.addAll(makeSingleMoves(this.setup, this.detectives, temp, temp.location()));}
 				}
 			}
 
