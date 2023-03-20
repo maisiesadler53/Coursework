@@ -288,10 +288,11 @@ public final class MyGameStateFactory implements Factory<GameState> {
 							if (temp.piece() == move.commencedBy()) ;
 							{
 								Player player = temp;
-								player.use(move.ticket);
-								MrX.give(move.ticket);
-								player.at(move.destination);
-
+								if (player.has(move.ticket)) {
+									player.use(move.ticket);
+									MrX.give(move.ticket);
+									player.at(move.destination);
+								}
 							}
 						}
 						newRemaining.remove(move.commencedBy());
