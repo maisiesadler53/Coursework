@@ -47,7 +47,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			this.detectives = detectives;
 			this.moves = makeMoves();
 
-
 			if (setup.moves.isEmpty()) throw new IllegalArgumentException("Moves is empty!");
 			if (setup.graph.nodes().isEmpty()) throw new IllegalArgumentException("Graph is empty!");
 			if (!(mrX.isMrX())) throw new IllegalArgumentException("No MrX");
@@ -77,18 +76,14 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 
 
-
 			if  ((isMrxSurrounded()) || (remaining.contains(MRX) && (makeSingleMoves(setup, detectives, MrX, MrX.location()).isEmpty())) ||  (detectiveLocations.contains(MrX.location()))){
-
 				winner = ImmutableSet.copyOf(detectivePieces);
-
 			}
-			else if ( (this.detectiveNoTickets()) || ((setup.moves.contains(false) && (setup.moves.size() == 1) && remaining.contains(MRX)))){
+			else if ((this.detectiveNoTickets()) || log.size() == setup.moves.size()){
 				winner = ImmutableSet.of(MrX.piece());
-			}else { winner = ImmutableSet.of();}
-
+			}
+			else { winner = ImmutableSet.of();}
 		}
-
 		private boolean isMrxSurrounded() {
 			boolean surrounded = false;
 			for (int destination : setup.graph.adjacentNodes(MrX.location())) {
@@ -96,10 +91,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				for (Player temp : detectives) {
 					if (temp.location() == destination) surrounded = true;
 				}
-
 				if (surrounded) continue;
 				else return false;
-
 		}
 			return surrounded;
 		}
@@ -201,7 +194,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		public ImmutableSet<Piece> getPlayers() {
 			Set<Piece> temp = new HashSet<>();
 			temp.add(this.MrX.piece());
-			;
 			for (Player detective : this.detectives) {
 				temp.add(detective.piece());
 			}
@@ -330,6 +322,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 							newMoves.remove(0);
 							newMoves.add(false);
 						}
+
 						GameSetup newGameSetup = new GameSetup(setup.graph, ImmutableList.copyOf(newMoves));
 
 						// removed tickets
@@ -355,7 +348,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 			}
 
-			else if (move.commencedBy().isDetective() && !this.remaining.contains(MRX)) {
+			else if (move.commencedBy().isDetective()) {
 
 				return move.accept(new Move.Visitor<GameState>() {
 					Set<Piece> newRemaining = new HashSet<>(remaining);
@@ -392,7 +385,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 							for (Player detective:detectives) {
 								newRemaining.add(detective.piece());
 							}
-							newRemaining.add(detecties);
+							newRemaining.add(MRX);
 							gameState = new MyGameState(setup, ImmutableSet.copyOf(newRemaining), log, MrX, ImmutableList.copyOf(newDetectives));
 
 						}
