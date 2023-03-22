@@ -76,7 +76,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 
 
 
-			if  ((isMrxSurrounded()) || (remaining.contains(MRX) && (makeSingleMoves(setup, detectives, MrX, MrX.location()).isEmpty())) ||  (detectiveLocations.contains(MrX.location()))){
+			if  ((remaining.contains(MRX) && (makeSingleMoves(setup, detectives, MrX, MrX.location()).isEmpty())) ||  (detectiveLocations.contains(MrX.location()))){
 				winner = ImmutableSet.copyOf(detectivePieces);
 			}
 			else if ((this.detectiveNoTickets()) || log.size() == setup.moves.size()){
