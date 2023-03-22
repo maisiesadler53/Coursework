@@ -392,7 +392,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 							for (Player detective:detectives) {
 								newRemaining.add(detective.piece());
 							}
-							newRemaining.add(MRX);
+							newRemaining.add(detecties);
 							gameState = new MyGameState(setup, ImmutableSet.copyOf(newRemaining), log, MrX, ImmutableList.copyOf(newDetectives));
 
 						}
