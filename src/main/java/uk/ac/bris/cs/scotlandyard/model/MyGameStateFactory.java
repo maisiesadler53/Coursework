@@ -98,7 +98,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				}
 
 				if (surrounded) continue;
-				else break;
+				else return false;
 
 		}
 			return surrounded;
