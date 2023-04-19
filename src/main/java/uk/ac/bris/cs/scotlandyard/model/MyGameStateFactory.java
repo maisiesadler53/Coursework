@@ -177,7 +177,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		@Nonnull
 		@Override
 		public ImmutableSet<Move> getAvailableMoves() {
-
 			if (getWinner().isEmpty()) {
 				return this.moves;
 			}
@@ -251,7 +250,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			if (!this.moves.contains(move)) {
 				throw new IllegalArgumentException("Illegal move: " + move);
 			}
-
 			// mr x's advance method
 			if (move.commencedBy() == MrX.piece()) {
 				return move.accept(new Move.Visitor<GameState>() {
@@ -268,13 +266,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 						if (newMoves.size() > 1) {
 							newMoves.remove(0);
 						}
-						else {
-							newMoves.remove(0);
-							newMoves.add(false);
-						}
 
 						GameSetup newGameSetup = new GameSetup(setup.graph, ImmutableList.copyOf(newMoves));
-
 						// removed tickets
 						MrX = MrX.use(move.ticket);
 						// moved to new location
@@ -287,8 +280,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 							for (Player detective:detectives) {
 								newRemaining.add(detective.piece()) ;
 							}
-						}
 
+						}
 						GameState gameState = new MyGameState(newGameSetup, ImmutableSet.copyOf(newRemaining), ImmutableList.copyOf(newLog), MrX, detectives);
 						return gameState;
 
@@ -355,12 +348,10 @@ public final class MyGameStateFactory implements Factory<GameState> {
 					@Override
 					public GameState visit(Move.SingleMove move) {
 						Set<Player> newDetectives = new HashSet<>(detectives);
-
 						// removed tickets
 						for (Player temp : detectives) {
 							if (temp.piece() == move.commencedBy())
 							{
-
 								if (temp.has(move.ticket)) {
 									newDetectives.remove(temp);
 									temp = temp.use(move.ticket);

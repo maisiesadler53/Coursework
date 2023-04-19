@@ -19,67 +19,65 @@ public final class MyModelFactory implements Factory<Model> {
 
 
 	@Nonnull @Override public Model build(GameSetup setup,
-	                                      Player mrX,
-	                                      ImmutableList<Player> detectives) {
-
+										  Player mrX,
+										  ImmutableList<Player> detectives) {
 		// new factory, state
-		MyGameStateFactory factory = new MyGameStateFactory();
-		Board.GameState state = factory.build(setup, mrX, detectives);
-		// observers - works
-		List<Model.Observer> observerList = new ArrayList<>();
 
-
-	return new Model() {
-
-
-		@Nonnull
-		@Override
-		public Board getCurrentBoard() {
-			return state;
-
-		}
-		@Override
-		public void registerObserver(Observer observer) {
-			if (observer == null) { throw new NullPointerException("Null observer"); }
-
-			if (observerList.contains(observer)) {
-				throw new IllegalArgumentException("Observer already registered");
+		return new Model() {
+			MyGameStateFactory factory = new MyGameStateFactory();
+			// first board built  (State)
+			Board.GameState state = factory.build(setup, mrX, detectives);
+			// observers - works
+			List<Model.Observer> observerList = new ArrayList<>();
+			@Nonnull
+			@Override
+			public Board getCurrentBoard() {
+				return state;
 			}
-			else {
-				observerList.add(observer);
-			}
+			@Override
+			public void registerObserver(Observer observer) {
+				if (observer == null) { throw new NullPointerException("Null observer"); }
 
-		}
-
-		@Override
-		public void unregisterObserver(Observer observer) {
-			if (observer == null) { throw new NullPointerException("Null observer"); }
-
-			if (! observerList.contains(observer)) {
-				throw new IllegalArgumentException("Observer not previously registered");
-			}
-			else  {
-				observerList.remove(observer);
-			}
-		}
-
-		@Nonnull
-		@Override
-		public ImmutableSet<Observer> getObservers() {
-			return ImmutableSet.copyOf(observerList);
-		}
-
-		@Override
-		public void chooseMove(@Nonnull Move move){
-			state.advance(move);
-			for (Observer observer : observerList) {
-				if(!state.getWinner().isEmpty()) {
-					observer.onModelChanged(state, Observer.Event.MOVE_MADE);
+				if (observerList.contains(observer)) {
+					throw new IllegalArgumentException("Observer already registered");
 				}
-				else {observer.onModelChanged(state, Observer.Event.MOVE_MADE); }
+				else {
+					observerList.add(observer);
+				}
+
 			}
-		}
-	};
+
+			@Override
+			public void unregisterObserver(Observer observer) {
+				if (observer == null) { throw new NullPointerException("Null observer"); }
+				if (! observerList.contains(observer)) { throw new IllegalArgumentException("Observer not previously registered");}
+				else  { observerList.remove(observer); }
+			}
+			@Nonnull
+			@Override
+			public ImmutableSet<Observer> getObservers() {
+				return ImmutableSet.copyOf(observerList);
+			}
+
+			@Override
+			public void chooseMove(@Nonnull Move move){
+				// first move
+				// error : not computing new moves once advanced
+				// new state -> advanced -> MRx first advance - works as normal
+				// chooseMove called again -> advance called -> state does not include ?
+				Board.GameState newState = state.advance(move);
+				for (Observer observer : observerList) {
+					// if the new get winner is empty -> so no win
+					if(newState.getWinner().isEmpty()) {
+						observer.onModelChanged(newState, Observer.Event.MOVE_MADE);
+					}
+					else if(! newState.getWinner().isEmpty()) {
+						observer.onModelChanged(newState, Observer.Event.GAME_OVER);
+					}
+				}
+				this.state = newState;
+			}
+		};
 	}
 
 
