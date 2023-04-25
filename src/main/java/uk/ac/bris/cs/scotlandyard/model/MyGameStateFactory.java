@@ -102,13 +102,20 @@ public final class MyGameStateFactory implements Factory<GameState> {
 					if (remaining.contains(tempDetective.piece())) {
 					tempMoves.addAll(makeSingleMoves(this.setup, this.detectives, tempDetective, tempDetective.location()));}
 				}
-			}
+				if (tempMoves.isEmpty()) {
+					tempMoves.addAll(makeSingleMoves(this.setup, this.detectives, MrX, MrX.location()));
+					if ((makeDoubleMoves(this.setup, this.detectives, MrX, MrX.location())) != null) {
+						tempMoves.addAll(makeDoubleMoves(this.setup, this.detectives, MrX, MrX.location()));}
+				}
+				}
+
 
 			else if (this.remaining.contains(MRX)) {
 				tempMoves.addAll(makeSingleMoves(this.setup, this.detectives, MrX, MrX.location()));
 				if ((makeDoubleMoves(this.setup, this.detectives, MrX, MrX.location())) != null) {
 					tempMoves.addAll(makeDoubleMoves(this.setup, this.detectives, MrX, MrX.location()));}
 			}
+
 			return ImmutableSet.copyOf(tempMoves);
 		}
 
