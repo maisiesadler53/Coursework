@@ -152,13 +152,15 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		@Override
 		// if it's MrX's turn, no more moves, or if detectives have got to MrX
 		public ImmutableSet<Piece> getWinner() {
-			if  ((remaining.contains(MRX) && (makeSingleMoves(setup, detectives, MrX, MrX.location()).isEmpty())) ||  (this.detectiveLocations().contains(MrX.location()))){
+			if  ((makeSingleMoves(setup, detectives, MrX, MrX.location()).isEmpty()) ||  (this.detectiveLocations().contains(MrX.location()))){
 				return winner = ImmutableSet.copyOf(this.detectivePieces());
 			}
 			// else detectives no tickets, or all moves used up
-			else if (((this.detectiveNoTickets())|| log.size() == setup.moves.size()) || (!remaining.contains(MRX) && (makeMoves().isEmpty()))) { return winner = ImmutableSet.of(MrX.piece()); }
+			else if (((this.detectiveNoTickets()) || log.size() == setup.moves.size()) ) { return winner = ImmutableSet.of(MrX.piece()); }
 			else { return winner = ImmutableSet.of();}
 		}
+
+
 
 		@Nonnull
 		@Override
