@@ -37,13 +37,8 @@ public final class MyModelFactory implements Factory<Model> {
 			@Override
 			public void registerObserver(Observer observer) {
 				if (observer == null) { throw new NullPointerException("Null observer"); }
-
-				if (observerList.contains(observer)) {
-					throw new IllegalArgumentException("Observer already registered");
-				}
-				else {
-					observerList.add(observer);
-				}
+				if (observerList.contains(observer)) { throw new IllegalArgumentException("Observer already registered");}
+				else { observerList.add(observer);}
 
 			}
 
