@@ -64,15 +64,14 @@ public final class MyModelFactory implements Factory<Model> {
 			@Override
 			public void chooseMove(@Nonnull Move move){
 				// make move using current state
-				Board.GameState newState = state.advance(move);
+				state = state.advance(move);
 				for (Observer observer : observerList) {
 					// move made if no winner
-					if (newState.getWinner().isEmpty()) { observer.onModelChanged(newState, Observer.Event.MOVE_MADE); }
+					if (state.getWinner().isEmpty()) { observer.onModelChanged(state, Observer.Event.MOVE_MADE); }
 					// if winner, then game over
-					else if (! newState.getWinner().isEmpty()) { observer.onModelChanged(newState, Observer.Event.GAME_OVER);}
+					else if (! state.getWinner().isEmpty()) { observer.onModelChanged(state, Observer.Event.GAME_OVER);}
 				}
 				// update current state to allow continuation
-				this.state = newState;
 			}
 		};
 	}

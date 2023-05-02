@@ -165,6 +165,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		@Override
 		public ImmutableSet<Move> getAvailableMoves() {
 			if (getWinner().isEmpty()) {
+				this.moves =  makeMoves();
 				return this.moves;
 			}
 			return ImmutableSet.of();
@@ -216,9 +217,13 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				return possibleDoubleMoves;
 			} else return null;
 		}
+		// advance
+		// makemoves
+		// getav
+		// obsrver factory
 
 		@Override
-
+@Nonnull
 		// visitor pattern -> analyses for piece type, then follows correct move and returns the correctly updated state
 		public GameState advance(Move move) {
 			if (!this.moves.contains(move)) {
@@ -260,8 +265,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 							newRemaining.add(MRX);
 						}
 					}
-					GameState gameState = new MyGameState(setup, ImmutableSet.copyOf(newRemaining), ImmutableList.copyOf(newLog), MrX, ImmutableList.copyOf(newDetectives));
-					return gameState;
+					return new MyGameState(setup, ImmutableSet.copyOf(newRemaining), ImmutableList.copyOf(newLog), MrX, ImmutableList.copyOf(newDetectives));
 
 				}
 
@@ -272,17 +276,17 @@ public final class MyGameStateFactory implements Factory<GameState> {
 					if (move.commencedBy().isDetective()) { return null; }
 					List<LogEntry> newLog = new ArrayList<>(log);
 					List<Boolean> newMoves = new ArrayList<>(setup.moves);
-					if (newMoves.get(log.size()) == (true)) {
+					if (newMoves.get(log.size())) {
 						newLog.add(LogEntry.reveal((move.ticket1), move.destination1));
 
-					} else if (newMoves.get(log.size()) == (false)) {
+					} else if (!newMoves.get(log.size())) {
 						newLog.add(LogEntry.hidden(move.ticket1));
 					}
 
 
-					if (newMoves.get(newLog.size()) == (true)) {
+					if (newMoves.get(newLog.size())) {
 						newLog.add(LogEntry.reveal((move.ticket2), move.destination2));
-					} else if (newMoves.get(newLog.size()) == (false)) {
+					} else if (!newMoves.get(newLog.size())) {
 						newLog.add(LogEntry.hidden(move.ticket2));
 					}
 
@@ -305,9 +309,9 @@ public final class MyGameStateFactory implements Factory<GameState> {
 						}
 					}
 
-					GameState gameState = new MyGameState(newGameSetup, ImmutableSet.copyOf(newRemaining), ImmutableList.copyOf(newLog), MrX, detectives);
-					return gameState;
-				};
+					return new MyGameState(newGameSetup, ImmutableSet.copyOf(newRemaining), ImmutableList.copyOf(newLog), MrX, detectives);
+
+				}
 			});
 
 		}
