@@ -24,10 +24,10 @@ public final class MyModelFactory implements Factory<Model> {
 		// new factory, state
 
 		return new Model() {
+
+			// initialise factory, state and observerList as in observer pattern
 			MyGameStateFactory factory = new MyGameStateFactory();
-			// first board built  (State)
 			Board.GameState state = factory.build(setup, mrX, detectives);
-			// observers - works
 			List<Model.Observer> observerList = new ArrayList<>();
 			@Nonnull
 			@Override
@@ -35,6 +35,8 @@ public final class MyModelFactory implements Factory<Model> {
 				return state;
 			}
 			@Override
+
+			// add observer to list
 			public void registerObserver(Observer observer) {
 				if (observer == null) { throw new NullPointerException("Null observer"); }
 				if (observerList.contains(observer)) { throw new IllegalArgumentException("Observer already registered");}
@@ -42,34 +44,34 @@ public final class MyModelFactory implements Factory<Model> {
 
 			}
 
+
+			// remove observer from list
 			@Override
 			public void unregisterObserver(Observer observer) {
 				if (observer == null) { throw new NullPointerException("Null observer"); }
 				if (! observerList.contains(observer)) { throw new IllegalArgumentException("Observer not previously registered");}
 				else  { observerList.remove(observer); }
 			}
+
+			// return list of observers
 			@Nonnull
 			@Override
 			public ImmutableSet<Observer> getObservers() {
 				return ImmutableSet.copyOf(observerList);
 			}
 
+			// continue the game method
 			@Override
 			public void chooseMove(@Nonnull Move move){
-				// first move
-				// error : not computing new moves once advanced
-				// new state -> advanced -> MRx first advance - works as normal
-				// chooseMove called again -> advance called -> state does not include ?
+				// make move using current state
 				Board.GameState newState = state.advance(move);
 				for (Observer observer : observerList) {
-					// if the new get winner is empty -> so no win
-					if(newState.getWinner().isEmpty()) {
-						observer.onModelChanged(newState, Observer.Event.MOVE_MADE);
-					}
-					else if(! newState.getWinner().isEmpty()) {
-						observer.onModelChanged(newState, Observer.Event.GAME_OVER);
-					}
+					// move made if no winner
+					if (newState.getWinner().isEmpty()) { observer.onModelChanged(newState, Observer.Event.MOVE_MADE); }
+					// if winner, then game over
+					else if (! newState.getWinner().isEmpty()) { observer.onModelChanged(newState, Observer.Event.GAME_OVER);}
 				}
+				// update current state to allow continuation
 				this.state = newState;
 			}
 		};

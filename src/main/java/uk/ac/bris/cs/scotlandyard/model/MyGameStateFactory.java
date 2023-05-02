@@ -205,11 +205,11 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			if ((this.MrX.has(DOUBLE) && player.isMrX()) && (setup.moves.size() >= 2)){
 				Set<Move.SingleMove> possibleFirstMoves = makeSingleMoves(setup, detectives, player, source);
 				Set<Move.DoubleMove> possibleDoubleMoves = new HashSet<>();
-				for (Move.SingleMove singleMove : possibleFirstMoves) {
-					Set<Move.SingleMove> possibleMoveTwo = makeSingleMoves(setup, detectives, player, singleMove.destination);
+				for (Move.SingleMove moveOne : possibleFirstMoves) {
+					Set<Move.SingleMove> possibleMoveTwo = makeSingleMoves(setup, detectives, player, moveOne.destination);
 					for (Move.SingleMove moveTwo : possibleMoveTwo) {
-						if ((moveTwo.ticket != singleMove.ticket) || (player.hasAtLeast(moveTwo.ticket, 2))) {
-							possibleDoubleMoves.add(new Move.DoubleMove(player.piece(), source, singleMove.ticket, singleMove.destination, moveTwo.ticket, moveTwo.destination));}
+						if ((moveTwo.ticket != moveOne.ticket) || (player.hasAtLeast(moveTwo.ticket, 2))) {
+							possibleDoubleMoves.add(new Move.DoubleMove(player.piece(), source, moveOne.ticket, moveOne.destination, moveTwo.ticket, moveTwo.destination));}
 					}
 				}
 
@@ -218,8 +218,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		}
 
 		@Override
-		// accept -> analyses visitor, then returns visit correct with pattern of visitor type
-		// return move.accept ( case -> single case -> double) gamestate objects
+
+		// visitor pattern -> analyses for piece type, then follows correct move and returns the correctly updated state
 		public GameState advance(Move move) {
 			if (!this.moves.contains(move)) {
 				throw new IllegalArgumentException("Illegal move: " + move);
