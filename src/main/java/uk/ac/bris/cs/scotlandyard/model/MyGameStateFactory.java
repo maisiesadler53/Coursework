@@ -217,10 +217,6 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				return possibleDoubleMoves;
 			} else return null;
 		}
-		// advance
-		// makemoves
-		// getav
-		// obsrver factory
 
 		@Override
 @Nonnull
