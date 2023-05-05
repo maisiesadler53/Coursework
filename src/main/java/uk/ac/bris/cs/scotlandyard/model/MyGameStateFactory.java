@@ -189,6 +189,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 		private Set<Move.SingleMove> makeSingleMoves(GameSetup setup, List<Player> detectives, Player player, int source) {
 			Set<Move.SingleMove> possibleMoves = new HashSet<>();
 			boolean occupied;
+			// boolean used to not include other detective positions
 			for (int destination : setup.graph.adjacentNodes(source)) {
 				occupied = detectiveLocations().contains(destination);
 				if (occupied) continue;
@@ -203,6 +204,9 @@ public final class MyGameStateFactory implements Factory<GameState> {
 			if ((this.MrX.has(DOUBLE) && player.isMrX()) && (setup.moves.size() >= 2)){
 				Set<Move.SingleMove> possibleFirstMoves = makeSingleMoves(setup, detectives, player, source);
 				Set<Move.DoubleMove> possibleDoubleMoves = new HashSet<>();
+
+				// analyses second moves after previously calculated moves
+				// if attributes match -> add to returned set
 				for (Move.SingleMove moveOne : possibleFirstMoves) {
 					Set<Move.SingleMove> possibleMoveTwo = makeSingleMoves(setup, detectives, player, moveOne.destination);
 					for (Move.SingleMove moveTwo : possibleMoveTwo) {
@@ -226,7 +230,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 				@Override
 				public GameState visit(Move.SingleMove move) {
 					Set<Piece> newRemaining = new HashSet<>(remaining);
-					// mrx log stuff
+					// update mrx's log
 					List<LogEntry> newLog = new ArrayList<>(log);
 					Set<Player> newDetectives = new HashSet<>(detectives);
 					if (move.commencedBy() == MrX.piece()) {
@@ -242,6 +246,7 @@ public final class MyGameStateFactory implements Factory<GameState> {
 					} else {
 						Player player = pieceToPlayer(move.commencedBy());
 						if (player.has(move.ticket)) {
+							// update attributes of players
 							newDetectives.remove(player);
 							player = player.use(move.ticket);
 							MrX = MrX.give(move.ticket);
@@ -249,6 +254,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 							newDetectives.add(player);
 						}
 					}
+
+					// refresh remaining players
 					newRemaining.remove(move.commencedBy());
 					if (newRemaining.isEmpty()) {
 						newRemaining.addAll(detectivePieces());
@@ -286,6 +293,8 @@ public final class MyGameStateFactory implements Factory<GameState> {
 					MrX = MrX.use(move.ticket2);
 					MrX = MrX.at(move.destination2);
 					MrX = MrX.use(DOUBLE);
+
+					//refresh remaining players
 					Set<Piece> newRemaining = new HashSet<>(remaining);
 					newRemaining.remove(MRX);
 					if (newRemaining.isEmpty()) {
